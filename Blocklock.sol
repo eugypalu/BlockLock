@@ -71,7 +71,8 @@ contract Blocklock {
      * è il creator, quindi tanto vale che chiude il contratto e lo rideploya(meno costoso)
      * In alternativa tenere traccia degli utenti su array poi elminare tutti gli address del map scorrendo l'array
      */
-    function deleteUser(address _usr) onlyRoot(msg.sender) public{
+    function deleteUser(address _usr) onlyRoot(msg.sender) public{//non vera la cosa del creator i root eliminano i root
+    //TODO cambiare tutto
         if(isRoot[_usr] == 1){
            isRoot[_usr] = 0; 
             emit userDeleted(block.number);
@@ -90,6 +91,18 @@ contract Blocklock {
         bytes32 result;
         assembly {
             result := mload(add(_s, 32))
+        }
+        return result;
+    }
+
+    function bytesToString(bytes32 _bytes32) private pure returns (string memory){
+        string memory result;
+        assembly {
+        let val := mload(0x40)
+        mstore(val, 0x20)
+        mstore(add(val, 0x20), _bytes32)
+        mstore(0x40, add(val, 0x40))
+        result := val
         }
         return result;
     }
