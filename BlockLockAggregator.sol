@@ -8,11 +8,9 @@ contract BlocklockAggregator {
 
     address creator; //potrebbe non servire
     
-    //tiene traccia del numero di blocklock create. Necessario perchè non tiene in considerazione i reset
-    uint256 globalCounter;
+    uint256 globalCounter; //tiene traccia del numero di blocklock create. Necessario perchè non tiene in considerazione i reset
 
-    //istanza di blocklock
-    Blocklock blockL;
+    Blocklock blockL; //istanza di blocklock
     
     /**
      * Info sulla porta
@@ -53,19 +51,18 @@ contract BlocklockAggregator {
         emit blockLockAdded(block.number, _blocklockAddress, _usr);
     }
 
+    /**
+     * aggiunge l'utente alla porta
+     **/
     function addUser(address _blocklockAddress, address _usr) public{
         //doorsUser[_blocklockAddress].push(_usr);
         userToDoors[_usr].push(doorInfo(true, _blocklockAddress));
     }
 
+    /**
+     * Elimina l'utente associato alla porta
+     **/
     function deleteUser(address _blocklockAddress, address _usr) public{
-        /*for(uint i = 0; i < doorsUser[_blocklockAddress].length; i++){
-            if(doorsUser[_blocklockAddress][i] == _usr){
-                delete doorsUser[_blocklockAddress][i];
-                break;
-            }
-        }*/
-
         for(uint i = 0; i < userToDoors[_usr].length; i++){
             if(userToDoors[_usr][i].doorAddress == _blocklockAddress){
                 delete userToDoors[_usr][i];
@@ -74,29 +71,33 @@ contract BlocklockAggregator {
         }
     }
 
+    /**
+     * esegue il reset di blocklock settando a inattiva la porta precedente
+     * deploya un nuovo contratto
+     **/
     function resetBlocklock(address _blocklockAddress, address _usr, bytes32 lockId) public{
         for(uint i = 0; i < userToDoors[_usr].length; i++){
             if(userToDoors[_usr][i].doorAddress == _blocklockAddress){
-                userToDoors[_usr][i].isActive = false;
+                userToDoors[_usr][i].isActive = false; //setta la vecchia porta come inattiva
                 break;
             }
         }
         
-        Blocklock bl = new Blocklock(bytesToString(lockId), address(this));
+        Blocklock bl = new Blocklock(bytesToString(lockId), address(this)); //deploya un nuovo contratto
         //doorsUser[_usr].push(address(bl));
-        userToDoors[_usr].push(doorInfo(true, address(bl)));
+        userToDoors[_usr].push(doorInfo(true, address(bl))); //aggiungo la nuova porta alla lista
     }
     
+    /**
+     * restituisce il counter di blocklock
+     **/
     function getCounter() public view returns(uint256){
         return globalCounter;
     }
-    
-    //Non mi serve il delete, ogni volta che resetto blocklock il vecchio addres non controlla più il dispositivo
-    /*function deleteBlocklock(address _blocklockAddress, bytes32 _blocklockId) public{
-        //addressToId[_blocklockAddress] = 0;
-        globalCounter -= 1;
-    }*/
 
+    /**
+     * Converte i bytes32 in stringhe
+     **/
     function bytesToString (bytes32 _bytes32) private pure returns (string memory){
         string memory result;
         assembly {
